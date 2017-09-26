@@ -16,18 +16,19 @@
 
 - name: Install pip
   apt: 
-    name: python3-pip
+    name: python-pip
     state: present
 
 - name: Install dopy
   pip: 
     name: dopy
-    executable: pip3
+    executable: pip
+
 
 - name: Install passlib
   pip:
     name: passlib
-    executable: pip3
+    executable: pip
 
 
 - name: Add Jdk repository
@@ -81,16 +82,25 @@
     line: jenkins ALL=(ALL) NOPASSWD:ALL
     insertafter: EOF
 
+- name: create .ssh
+  file:
+    path: /var/lib/jenkins/.ssh
+    state: directory
+
 - name: Generate SSH keys
   shell: ssh-keygen -b 2048 -t rsa -f /var/lib/jenkins/.ssh/id_rsa -q -N ""
   args:
     creates: /var/lib/jenkins/.ssh/id_rsa
 
-
-
 - name: get admin password
   command: cat /var/lib/jenkins/secrets/initialAdminPassword
   register: adminPassword
+
+- name: disable ssh key checking
+  replace:
+    path: /etc/ansible/ansible.cfg
+    regexp: "#host_key_checking = False"
+    replace: "host_key_checking = False"
 
 - name: debug
   debug:
@@ -141,16 +151,3 @@
 
 - name: Wait for Jenkins to become available
   wait_for: port=8080
-
-
-
-
-
-
-
-
-
-
-
-
-
